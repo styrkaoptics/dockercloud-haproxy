@@ -15,180 +15,12 @@ The available version can be found here: https://hub.docker.com/r/dockercloud/ha
 
 ## Usage
 
-You can use `dockercloud/haproxy` in three different ways:
+You can use `dockercloud/haproxy` in 4 different ways:
 
-- running in Docker Cloud (Cloud Mode)
-- running with Docker legacy links (Legacy Mode)
-- running with Docker Compose v2 (Compose Mode, compatible with Docker Swarm)
-- running with Docker SwarmMode (Swarm Mode)
-
-### Running in Docker Cloud (Cloud Mode)
-
-1. Launch the service you want to load-balance using Docker Cloud.
-
-2. Launch the load balancer. To do this, select "Jumpstarts", "Proxies" and select `dockercloud/haproxy`. During the "Environment variables" step of the wizard, link to the service created earlier (the name of the link is not important), and add "Full Access" API role (this will allow HAProxy to be updated dynamically by querying Docker Cloud's API).
-
-	**Note**:
-	- If you are using `docker-cloud cli`, or `stackfile`, please set `roles` to `global`
-	- Please **DO NOT** set `sequential_deployment: true` on this image.
-
-That's it - the haproxy container will start querying Docker Cloud's API for an updated list of containers in the service and reconfigure itself automatically, including:
-
-* start/stop/terminate containers in the linked application services
-* start/stop/terminate/scale up/scale down/redeploy the linked application services
-* add new links to HAProxy
-* remove old links from HAProxy
-
-##### example of stackfile in Docker Cloud:
-
-	web:
-	  image: 'dockercloud/hello-world:latest'
-	  target_num_containers: 2
-	lb:
-	  image: 'dockercloud/haproxy:latest'
-	  links:
-	    - web
-	  ports:
-	    - '80:80'
-	  roles:
-	    - global
-
-### Running with Docker SwarmMode (Swarm Mode)
-
-Docker 1.12 supports SwarmMode natively. `dockercloud/haproxy` will auto config itself to load balance all the services running on the same network:
-
-1. Create a new network using `docker network create -d overlay <name>` command
-
-2. Launch `dockercloud/haproxy` service on that network on manager nodes.
-
-3. Launch your application services that need to be load balanced on the same network.
-
-    **Note**
-    - You **HAVE TO** set the environment variable `SERVICE_PORTS=<port1>, <port2>` in your application service, which are the ports you would like to expose.
-    - For `dockercloud/haproxy` service:
-      If you mount `/var/run/docker.sock`, it can only be run on swarm manager nodes.
-      If you want the haproxy service to run on worker nodes, you need to setup DOCKER_HOST envvar that points to the manager address.
-
-* If your application services need to access other services(database, for example), you can attach your application services to two different network, one is for database and the other one for the proxy
-* This feature is still experimental, please let us know if you find any bugs or have any suggestions.
-
-#### example of docker swarm mode support
-
-    docker network create -d overlay proxy
-    docker service create --name haproxy --network proxy --mount target=/var/run/docker.sock,source=/var/run/docker.sock,type=bind -p 80:80 --constraint "node.role == manager" dockercloud/haproxy
-    docker service create -e SERVICE_PORTS="80" --name app --network proxy --constraint "node.role != manager" dockercloud/hello-world
-    docker service scale app=2
-    docker service update --env-add VIRTUAL_HOST=web.org app
-
-### Running with Docker legacy links (Legacy Mode)
-
-Legacy link refers to the link created before docker 1.10, and the link created in default bridge network in docker 1.10 or after.
-
-##### example of legacy links using docker cli
-
-    docker run -d --name web1 dockercloud/hello-world
-    docker run -d --name web2 dockercloud/hello-world
-    docker run -d -p 80:80 --link web1:web1 --link web2:web2 dockercloud/haproxy
-
-#### example of docker-compose.yml v1 format:
-
-	web1:
-	  image: 'dockercloud/hello-world:latest'
-	web2:
-	  image: 'dockercloud/hello-world:latest'
-	lb:
-	  image: 'dockercloud/haproxy:latest'
-	  links:
-	    - web1
-	    - web2
-	  ports:
-	    - '80:80'
-
-**Note**: Any link alias sharing the same prefix and followed by "-/_" with an integer is considered to be from the same service. For example: `web-1` and `web-2` belong to service `web`, `app_1` and `app_2` are from service `app`, but `app1` and `web2` are from different services.
-
-
-### Running with Docker Compose v2 (Compose Mode)
-
-Docker Compose 1.6 supports a new format of the compose file. In the new version(v2), the old link that injects environment variables is deprecated.
-
-Similar to using legacy links, here list some differences that you need to notice:
-- This image must be run using Docker Compose, as it relies on the Docker Compose labels for configuration.
-- The container needs access to the docker socket, you must mount the correct files and set the related environment to make it work.
-- A link is required in order to ensure that dockercloud/haproxy is aware of which service it needs to balance, although links are not needed for service discovery since docker 1.10. Linked aliases are not required.
-- DO not overwrite `HOSTNAME` environment variable in `dockercloud/haproxy container`.
-- As it is the case on Docker Cloud, auto reconfiguration is supported when the linked services scales or/and the linked container starts/stops.
-- The container name is maintained by docker-compose, and used for service discovery as well. Please **DO NOT** change `container_name` of the linked service in the compose file to a non-standard name. Otherwise, that service will be ignored.
-
-##### example of docker-compose.yml running on Linux or Docker for Mac (beta):
-
-	version: '2'
-	services:
-	  web:
-	    image: dockercloud/hello-world
-	  lb:
-	    image: dockercloud/haproxy
-	    links:
-	      - web
-	    volumes:
-	      - /var/run/docker.sock:/var/run/docker.sock
-	    ports:
-	      - 80:80
-
-##### example of docker-compose.yml running on Mac OS
-
-	version: '2'
-	services:
-	  web:
-	    image: dockercloud/hello-world
-	  lb:
-	    image: dockercloud/haproxy
-	    links:
-	      - web
-	    environment:
-	      - DOCKER_TLS_VERIFY
-	      - DOCKER_HOST
-	      - DOCKER_CERT_PATH
-	    volumes:
-	      - $DOCKER_CERT_PATH:$DOCKER_CERT_PATH
-	    ports:
-	      - 80:80
-
-Once the stack is up, you can scale the web service using `docker-compose scale web=3`. dockercloud/haproxy will automatically reload its configuration.
-
-#### Running with Docker Compose v2 and Swarm (using envvar)
-When using links like previous section, the Docker Swarm scheduler can be too restrictive.
-Even with overlay network, swarm (As of 1.1.0) will attempt to schedule haproxy on the same node as the linked service due to legacy links behavior.
-This can cause unwanted scheduling patterns or errors such as "Unable to find a node fulfilling all dependencies..."
-
-Since Compose V2 allows discovery through the service names, Dockercloud haproxy only needs the links to indentify which service should be load balanced.
-
-A second option is to use the `ADDITIONAL_SERVICES` variable for indentification of services.
-
-- Set the `ADDITIONAL_SERVICES` env variable to your linked services.
-- You also want to set depends_on to ensure the web service is started before haproxy so that the hostname can be resolved. This controls scheduling order but not location.
-- The container still needs access to the docker daemon to get load balanced containers' configs.
-- If any trouble with haproxy not updating the config, try running reload.sh or set the `DEBUG` envvar.
-- This image is also compatible with Docker Swarm, and supports the docker native `overlay` network across multi-hosts.
-
-##### example of docker-compose.yml in 'project_dir' directory running in linux:
-
-	version: '2'
-	services:
-	  web:
-	    image: dockercloud/hello-world
-	  blog:
-	    image: dockercloud/hello-world
-	  lb:
-	    image: dockercloud/haproxy
-	    depends_on:
-	      - web
-	      - blog
-	    environment:
-	      - ADDITIONAL_SERVICES=project_dir:web,project_dir:blog
-	    volumes:
-	      - /var/run/docker.sock:/var/run/docker.sock
-	    ports:
-	      - 80:80
+- Cloud Mode:   [Running in Docker Cloud](docs/usage/cloudmode.md)
+- Legacy Mode:  [Running with Docker legacy links, using `docker run --link` flag or Docker Compose v1](docs/usage/legacymode.md)
+- Compose Mode: [Running with Docker Compose v2, compatible with Docker Classic Swarm](docs/usage/composemode.md)
+- Swarm Mode:   [Running with Docker Swarm Mode](docs/usage/swarmmode.md)
 
 ## Configuration
 
@@ -261,7 +93,7 @@ Settings here can overwrite the settings in HAProxy, which are only applied to t
 Swarm Mode only settings:
 
 |Name|Type|Description|
-|:--:|:--:|:---------:|
+|:--:|:--:|:---------|
 |SERVICE_PORTS|envvar|comma separated ports(e.g. 80, 8080), which are the ports you would like to expose in your application service. This envvar is swarm mode only, and it is **MUST** be set in swarm mode|
 |`com.docker.dockercloud.haproxy.deactivate=<true|false>`|label|when this label is set to true, haproxy will ignore the service. Could be useful for switching services on blue/green testing|
 
@@ -297,35 +129,7 @@ Both virtual host and virtual path can be specified in environment variable `VIR
 |port|80/433|port number of the virtual host. When the scheme is `https`  `wss`, the default port will be to `443`|
 |/path||virtual path, starts with `/`. `*` can be used as the wildcard|
 
-#### examples of matching
-
-|Virtual host|Match|Not match|
-|:-----------|:----|:--------|
-|http://example.com|example.com|www.example.com|
-|example.com|example.com|www.example.com|
-|example.com:90|example.com:90|example.com|
-|https://example.com|https://example.com|example.com|
-|https://example.com:444|https://example.com:444|https://example.com|
-|\*.example.com|www.example.com|example.com|
-|\*example.com|www.example.com, example.com, anotherexample.com|www.abc.com|
-|www.e\*e.com|www.example.com, www.exxe.com|www.axxa.com|
-|www.example.\*|www.example.com, www.example.org|example.com|
-|\*|any website with HTTP||
-|https://\*|any website with HTTPS||
-|\*/path|example.com/path, example.org/path?u=user|example.com/path/|
-|\*/path/|example.com/path/, example.org/path/?u=user|example.com/path, example.com/path/abc|
-|\*/path/\*|example.com/path/, example.org/path/abc|example.com/abc/path/
-|\*/\*/path/\*|example.com/path/, example.org/abc/path/, example.net/abc/path/123|example.com/path|
-|\*/\*.js|example.com/abc.js, example.org/path/abc.js|example.com/abc.css|
-|\*/\*.do/|example.com/abc.do/, example.org/path/abc.do/|example.com/abc.do|
-|\*/path/\*.php|example.com/path/abc.php|example/abc.php, example.com/root/abc.php|
-|\*.example.com/\*.jpg|www.example.com/abc.jpg, abc.example.com/123.jpg|example.com/abc.jpg|
-|\*/path, \*/path/|example.com/path, example.org/path/||
-|example.com:90, https://example.com|example.com:90, https://example.com||
-
-**Note**:
-1. The sequence of the acl rules generated based on VIRTUAL_HOST are random. In HAProxy, when an acl rule with a wide scope(e.g. *.example.com) is put before a rule with narrow scope(e.g. web.example.com), the narrow rule will never be reached. As a result, if the virtual hosts you set have overlapping scopes, you need to use `VIRTUAL_HOST_WEIGHT` to manually set the order of acl rules, namely, giving the narrow virtual host a higher weight than the wide one.
-2. Every service that has the same VIRTUAL_HOST environment variable setting will be considered and merged into one single service. It may be useful for some testing scenario.
+[**Here lists some examples of how the mapping works**](docs/vhost/vhost_example.md)
 
 ## SSL termination
 
