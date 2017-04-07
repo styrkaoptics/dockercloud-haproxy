@@ -340,7 +340,7 @@ class Haproxy(object):
         balance = TcpHelper.get_tcp_balance(details)
         options = TcpHelper.get_tcp_options(details, services)
         extra_settings = TcpHelper.get_tcp_extra_settings(details, services)
-        tcp_section.append("bind :::%s" % bind_string.strip())
+        tcp_section.append("bind %s:%s" % (PRE_BIND_SETTINGS, bind_string.strip()))
         tcp_section.append("mode tcp")
         tcp_section.extend(balance)
         tcp_section.extend(options)
