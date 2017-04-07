@@ -192,7 +192,7 @@ class HaproxyConfigUserListTestCase(unittest.TestCase):
                    {'container_name': 'HW_2', 'proto': 'tcp', 'port': '22', 'addr': '10.7.0.3'},
                    {'container_name': 'HW_1', 'proto': 'tcp', 'port': '33', 'addr': '10.7.0.2'},
                    {'container_name': 'HW_2', 'proto': 'tcp', 'port': '33', 'addr': '10.7.0.3'}]}
-        self.assertEqual(OrderedDict([('listen port_22', ['bind :22',
+        self.assertEqual(OrderedDict([('listen port_22', ['bind :::22',
                                                           'mode tcp',
                                                           'server HW_1 10.7.0.2:22 check',
                                                           'server HW_2 10.7.0.3:22 check'])]),
@@ -207,11 +207,11 @@ class HaproxyConfigUserListTestCase(unittest.TestCase):
                    {'container_name': 'HW_2', 'proto': 'tcp', 'port': '22', 'addr': '10.7.0.3'},
                    {'container_name': 'HW_1', 'proto': 'tcp', 'port': '33', 'addr': '10.7.0.2'},
                    {'container_name': 'HW_2', 'proto': 'tcp', 'port': '33', 'addr': '10.7.0.3'}]}
-        self.assertEqual(OrderedDict([('listen port_33', ['bind :33',
+        self.assertEqual(OrderedDict([('listen port_33', ['bind :::33',
                                                           'mode tcp',
                                                           'server HW_1 10.7.0.2:33 check',
                                                           'server HW_2 10.7.0.3:33 check']),
-                                      ('listen port_22', ['bind :22', 'mode tcp',
+                                      ('listen port_22', ['bind :::22', 'mode tcp',
                                                           'server HW_1 10.7.0.2:22 check',
                                                           'server HW_2 10.7.0.3:22 check'])]),
                          haproxy._config_tcp_sections())
@@ -231,15 +231,15 @@ class HaproxyConfigUserListTestCase(unittest.TestCase):
                     {'container_name': 'WEB_1', 'proto': 'tcp', 'port': '44', 'addr': '10.7.0.4'},
                     {'container_name': 'WEB_2', 'proto': 'tcp', 'port': '44', 'addr': '10.7.0.5'}]}
 
-        self.assertEqual(OrderedDict([('listen port_33', ['bind :33',
+        self.assertEqual(OrderedDict([('listen port_33', ['bind :::33',
                                                           'mode tcp',
                                                           'server HW_1 10.7.0.2:33 check',
                                                           'server HW_2 10.7.0.3:33 check']),
-                                      ('listen port_44', ['bind :44',
+                                      ('listen port_44', ['bind :::44',
                                                           'mode tcp',
                                                           'server WEB_1 10.7.0.4:44 check inter 2000 rise 2 fall 3',
                                                           'server WEB_2 10.7.0.5:44 check inter 2000 rise 2 fall 3']),
-                                      ('listen port_22', ['bind :22',
+                                      ('listen port_22', ['bind :::22',
                                                           'mode tcp',
                                                           'server WEB_1 10.7.0.4:22 check inter 2000 rise 2 fall 3',
                                                           'server WEB_2 10.7.0.5:22 check inter 2000 rise 2 fall 3',
