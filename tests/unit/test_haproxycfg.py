@@ -192,7 +192,7 @@ class HaproxyConfigUserListTestCase(unittest.TestCase):
                    {'container_name': 'HW_2', 'proto': 'tcp', 'port': '22', 'addr': '10.7.0.3'},
                    {'container_name': 'HW_1', 'proto': 'tcp', 'port': '33', 'addr': '10.7.0.2'},
                    {'container_name': 'HW_2', 'proto': 'tcp', 'port': '33', 'addr': '10.7.0.3'}]}
-        self.assertEqual(OrderedDict([('listen port_22', ['bind :::22',
+        self.assertEqual(OrderedDict([('listen port_22', ['bind :22',
                                                           'mode tcp',
                                                           'server HW_1 10.7.0.2:22 check',
                                                           'server HW_2 10.7.0.3:22 check'])]),
