@@ -94,7 +94,7 @@ def config_common_part(port, ssl_bind_string, vhosts):
     monitor_uri_configured = False
     frontend_section = []
     bind_string, ssl = get_bind_string(port, ssl_bind_string, vhosts)
-    frontend_section.append("bind :%s" % bind_string)
+    frontend_section.append("bind %s:%s" % (PRE_BIND_SETTINGS,bind_string))
 
     # add x-forwarded-porto header if not skipped
     if not SKIP_FORWARDED_PROTO:
@@ -137,7 +137,7 @@ def get_bind_string(port, ssl_bind_string, vhosts):
 def config_default_frontend(ssl_bind_string):
     cfg = OrderedDict()
     monitor_uri_configured = False
-    frontend = [("bind :80 %s" % EXTRA_BIND_SETTINGS.get('80', "")).strip()]
+    frontend = [("bind %s:80 %s" % (PRE_BIND_SETTINGS, EXTRA_BIND_SETTINGS.get('80', "")).strip())]
 
     # add x-forwarded-porto header if not skipped
     if not SKIP_FORWARDED_PROTO:
@@ -158,7 +158,7 @@ def config_default_frontend(ssl_bind_string):
     cfg["frontend default_port_80"] = frontend
 
     if ssl_bind_string:
-        ssl_frontend = [("bind :443 %s %s" % (ssl_bind_string, EXTRA_BIND_SETTINGS.get('443', ""))).strip()]
+        ssl_frontend = [("bind %s:443 %s %s" % (PRE_BIND_SETTINGS,ssl_bind_string, EXTRA_BIND_SETTINGS.get('443', ""))).strip()]
 
         # add x-forwarded-porto header if not skipped
         if not SKIP_FORWARDED_PROTO:
@@ -184,6 +184,6 @@ def config_default_frontend(ssl_bind_string):
 def config_monitor_frontend(monitor_uri_configured):
     cfg = OrderedDict()
     if not monitor_uri_configured and MONITOR_PORT and MONITOR_URI:
-        cfg["frontend monitor"] = ["bind :%s" % MONITOR_PORT,
+        cfg["frontend monitor"] = ["bind %s:%s" % (PRE_BIND_SETTINGS, MONITOR_PORT),
                                    "monitor-uri %s" % MONITOR_URI]
     return cfg
