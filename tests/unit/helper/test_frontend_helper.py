@@ -30,7 +30,7 @@ class FrontendHelperTestCase(unittest.TestCase):
     def test_config_frontend_with_virtual_host_without_monitoring_uri_added(self):
         vhosts = [{'service_alias': 'web-a', 'path': '', 'host': 'a.com', 'scheme': 'http', 'port': '80'}]
         cfg, monitor_uri_configured = config_frontend_with_virtual_host(vhosts, "ssl crt /certs/")
-        result = OrderedDict([('frontend port_80', ['bind :80',
+        result = OrderedDict([('frontend port_80', ['bind :80', 'bind :::80'
                                                     'reqadd X-Forwarded-Proto:\\ http',
                                                     'maxconn 55555',
                                                     'acl is_websocket hdr(Upgrade) -i WebSocket',
@@ -43,7 +43,7 @@ class FrontendHelperTestCase(unittest.TestCase):
     def test_config_frontend_with_virtual_host_with_path_rules(self):
         vhosts = [{'service_alias': 'web-a', 'path': '/path/*', 'host': '*', 'scheme': 'http', 'port': '80'}]
         cfg, monitor_uri_configured = config_frontend_with_virtual_host(vhosts, "ssl crt /certs/")
-        result = OrderedDict([('frontend port_80', ['bind :80',
+        result = OrderedDict([('frontend port_80', ['bind :80', 'bind :::80'
                                                     'reqadd X-Forwarded-Proto:\\ http',
                                                     'maxconn 55555',
                                                     'acl is_websocket hdr(Upgrade) -i WebSocket',
