@@ -138,7 +138,8 @@ def config_default_frontend(ssl_bind_string):
     cfg = OrderedDict()
     monitor_uri_configured = False
     frontend = [("bind %s:80 %s" % (PRE_BIND_SETTINGS, EXTRA_BIND_SETTINGS.get('80', ""))).strip()]
-
+    frontend.append("bind :::80")
+    
     # add x-forwarded-porto header if not skipped
     if not SKIP_FORWARDED_PROTO:
         frontend.append("reqadd X-Forwarded-Proto:\ http")
