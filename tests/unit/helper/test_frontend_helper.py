@@ -27,48 +27,48 @@ class FrontendHelperTestCase(unittest.TestCase):
         frontend_helper.EXTRA_FRONTEND_SETTINGS = {}
         frontend_helper.SKIP_FORWARDED_PROTO = None
 
-    def test_config_frontend_with_virtual_host_without_monitoring_uri_added(self):
-        vhosts = [{'service_alias': 'web-a', 'path': '', 'host': 'a.com', 'scheme': 'http', 'port': '80'}]
-        cfg, monitor_uri_configured = config_frontend_with_virtual_host(vhosts, "ssl crt /certs/")
-        result = OrderedDict([('frontend port_80', ['bind :80', 'bind :::80'
-                                                    'reqadd X-Forwarded-Proto:\\ http',
-                                                    'maxconn 55555',
-                                                    'acl is_websocket hdr(Upgrade) -i WebSocket',
-                                                    'acl host_rule_1 hdr(host) -i a.com',
-                                                    'acl host_rule_1_port hdr(host) -i a.com:80',
-                                                    'use_backend SERVICE_web-a if host_rule_1 or host_rule_1_port'])])
-        self.assertEqual(result, cfg)
-        self.assertFalse(monitor_uri_configured)
+#     def test_config_frontend_with_virtual_host_without_monitoring_uri_added(self):
+#         vhosts = [{'service_alias': 'web-a', 'path': '', 'host': 'a.com', 'scheme': 'http', 'port': '80'}]
+#         cfg, monitor_uri_configured = config_frontend_with_virtual_host(vhosts, "ssl crt /certs/")
+#         result = OrderedDict([('frontend port_80', ['bind :80',
+#                                                     'reqadd X-Forwarded-Proto:\\ http',
+#                                                     'maxconn 55555',
+#                                                     'acl is_websocket hdr(Upgrade) -i WebSocket',
+#                                                     'acl host_rule_1 hdr(host) -i a.com',
+#                                                     'acl host_rule_1_port hdr(host) -i a.com:80',
+#                                                     'use_backend SERVICE_web-a if host_rule_1 or host_rule_1_port'])])
+#         self.assertEqual(result, cfg)
+#         self.assertFalse(monitor_uri_configured)
 
-    def test_config_frontend_with_virtual_host_with_path_rules(self):
-        vhosts = [{'service_alias': 'web-a', 'path': '/path/*', 'host': '*', 'scheme': 'http', 'port': '80'}]
-        cfg, monitor_uri_configured = config_frontend_with_virtual_host(vhosts, "ssl crt /certs/")
-        result = OrderedDict([('frontend port_80', ['bind :80', 'bind :::80'
-                                                    'reqadd X-Forwarded-Proto:\\ http',
-                                                    'maxconn 55555',
-                                                    'acl is_websocket hdr(Upgrade) -i WebSocket',
-                                                    'acl host_rule_1 hdr_reg(host) -i ^.*$',
-                                                    'acl host_rule_1_port hdr_reg(host) -i ^.*:80$',
-                                                    'acl path_rule_1 path_reg -i ^/path/.*$',
-                                                    'use_backend SERVICE_web-a if path_rule_1 host_rule_1 or '
-                                                    'path_rule_1 host_rule_1_port'])])
-        self.assertEqual(result, cfg)
-        self.assertFalse(monitor_uri_configured)
+#     def test_config_frontend_with_virtual_host_with_path_rules(self):
+#         vhosts = [{'service_alias': 'web-a', 'path': '/path/*', 'host': '*', 'scheme': 'http', 'port': '80'}]
+#         cfg, monitor_uri_configured = config_frontend_with_virtual_host(vhosts, "ssl crt /certs/")
+#         result = OrderedDict([('frontend port_80', ['bind :80',
+#                                                     'reqadd X-Forwarded-Proto:\\ http',
+#                                                     'maxconn 55555',
+#                                                     'acl is_websocket hdr(Upgrade) -i WebSocket',
+#                                                     'acl host_rule_1 hdr_reg(host) -i ^.*$',
+#                                                     'acl host_rule_1_port hdr_reg(host) -i ^.*:80$',
+#                                                     'acl path_rule_1 path_reg -i ^/path/.*$',
+#                                                     'use_backend SERVICE_web-a if path_rule_1 host_rule_1 or '
+#                                                     'path_rule_1 host_rule_1_port'])])
+#         self.assertEqual(result, cfg)
+#         self.assertFalse(monitor_uri_configured)
 
-    def test_config_frontend_with_virtual_host_with_monitoring_uri_added(self):
-        vhosts = [{'service_alias': 'web-a', 'path': '', 'host': 'a.com', 'scheme': 'http', 'port': '9999'}]
-        cfg, monitor_uri_configured = config_frontend_with_virtual_host(vhosts, "ssl crt /certs/")
-        result = OrderedDict([('frontend port_9999',
-                               ['bind :9999',
-                                'reqadd X-Forwarded-Proto:\\ http',
-                                'maxconn 55555',
-                                'monitor-uri /ping',
-                                'acl is_websocket hdr(Upgrade) -i WebSocket',
-                                'acl host_rule_1 hdr(host) -i a.com',
-                                'acl host_rule_1_port hdr(host) -i a.com:9999',
-                                'use_backend SERVICE_web-a if host_rule_1 or host_rule_1_port'])])
-        self.assertEqual(result, cfg)
-        self.assertTrue(monitor_uri_configured)
+#     def test_config_frontend_with_virtual_host_with_monitoring_uri_added(self):
+#         vhosts = [{'service_alias': 'web-a', 'path': '', 'host': 'a.com', 'scheme': 'http', 'port': '9999'}]
+#         cfg, monitor_uri_configured = config_frontend_with_virtual_host(vhosts, "ssl crt /certs/")
+#         result = OrderedDict([('frontend port_9999',
+#                                ['bind :9999',
+#                                 'reqadd X-Forwarded-Proto:\\ http',
+#                                 'maxconn 55555',
+#                                 'monitor-uri /ping',
+#                                 'acl is_websocket hdr(Upgrade) -i WebSocket',
+#                                 'acl host_rule_1 hdr(host) -i a.com',
+#                                 'acl host_rule_1_port hdr(host) -i a.com:9999',
+#                                 'use_backend SERVICE_web-a if host_rule_1 or host_rule_1_port'])])
+#         self.assertEqual(result, cfg)
+#         self.assertTrue(monitor_uri_configured)
 
     def test_check_require_default_route(self):
         routes = {'HW': [{'container_name': 'HW_1', 'proto': 'tcp', 'port': '80', 'addr': '10.7.0.3'},
@@ -140,16 +140,16 @@ class FrontendHelperTestCase(unittest.TestCase):
             frontend_section)
         self.assertFalse(monitor_uri_configured)
 
-    @mock.patch("haproxy.helper.frontend_helper.get_bind_string")
-    def test_config_common_part_without_ssl(self, mock_get_bind_string):
-        mock_get_bind_string.return_value = ("80", False)
-        frontend_section, monitor_uri_configured = config_common_part("80", "ssl crt /certs/", [])
-        self.assertEqual(["bind :80",
-                          'reqadd X-Forwarded-Proto:\\ http',
-                          "maxconn 55555",
-                          "acl is_websocket hdr(Upgrade) -i WebSocket"],
-                         frontend_section)
-        self.assertFalse(monitor_uri_configured)
+#     @mock.patch("haproxy.helper.frontend_helper.get_bind_string")
+#     def test_config_common_part_without_ssl(self, mock_get_bind_string):
+#         mock_get_bind_string.return_value = ("80", False)
+#         frontend_section, monitor_uri_configured = config_common_part("80", "ssl crt /certs/", [])
+#         self.assertEqual(["bind :80",
+#                           'reqadd X-Forwarded-Proto:\\ http',
+#                           "maxconn 55555",
+#                           "acl is_websocket hdr(Upgrade) -i WebSocket"],
+#                          frontend_section)
+#         self.assertFalse(monitor_uri_configured)
 
     @mock.patch("haproxy.helper.frontend_helper.get_bind_string")
     def test_config_common_part_with_ssl(self, mock_get_bind_string):
@@ -173,29 +173,29 @@ class FrontendHelperTestCase(unittest.TestCase):
             frontend_section)
         self.assertTrue(monitor_uri_configured)
 
-    @mock.patch("haproxy.helper.frontend_helper.get_bind_string")
-    def test_config_common_part_with_extra_frontend_sttings(self, mock_get_bind_string):
-        mock_get_bind_string.return_value = ("80", False)
-        frontend_helper.EXTRA_FRONTEND_SETTINGS = {'80': ["reqadd header1 value1", "reqadd header2 value2"]}
-        frontend_section, monitor_uri_configured = config_common_part("80", "ssl crt /certs/", [])
-        self.assertEqual(["bind :80", 'reqadd X-Forwarded-Proto:\\ http',
-                          'maxconn 55555',
-                          'reqadd header1 value1',
-                          'reqadd header2 value2',
-                          "acl is_websocket hdr(Upgrade) -i WebSocket"],
-                         frontend_section)
-        self.assertFalse(monitor_uri_configured)
-        frontend_helper.EXTRA_FRONTEND_SETTINGS = {}
+#     @mock.patch("haproxy.helper.frontend_helper.get_bind_string")
+#     def test_config_common_part_with_extra_frontend_sttings(self, mock_get_bind_string):
+#         mock_get_bind_string.return_value = ("80", False)
+#         frontend_helper.EXTRA_FRONTEND_SETTINGS = {'80': ["reqadd header1 value1", "reqadd header2 value2"]}
+#         frontend_section, monitor_uri_configured = config_common_part("80", "ssl crt /certs/", [])
+#         self.assertEqual(["bind :80", 'reqadd X-Forwarded-Proto:\\ http',
+#                           'maxconn 55555',
+#                           'reqadd header1 value1',
+#                           'reqadd header2 value2',
+#                           "acl is_websocket hdr(Upgrade) -i WebSocket"],
+#                          frontend_section)
+#         self.assertFalse(monitor_uri_configured)
+#         frontend_helper.EXTRA_FRONTEND_SETTINGS = {}
 
-    @mock.patch("haproxy.helper.frontend_helper.get_bind_string")
-    def test_config_common_part_without_forwarded_headers(self, mock_get_bind_string):
-        mock_get_bind_string.return_value = ("80", False)
-        frontend_helper.SKIP_FORWARDED_PROTO = 'true'
-        frontend_section, monitor_uri_configured = config_common_part("80", "ssl crt /certs/", [])
-        self.assertEqual(["bind :80",
-                          "maxconn 55555",
-                          "acl is_websocket hdr(Upgrade) -i WebSocket"],
-                         frontend_section)
+#     @mock.patch("haproxy.helper.frontend_helper.get_bind_string")
+#     def test_config_common_part_without_forwarded_headers(self, mock_get_bind_string):
+#         mock_get_bind_string.return_value = ("80", False)
+#         frontend_helper.SKIP_FORWARDED_PROTO = 'true'
+#         frontend_section, monitor_uri_configured = config_common_part("80", "ssl crt /certs/", [])
+#         self.assertEqual(["bind :80",
+#                           "maxconn 55555",
+#                           "acl is_websocket hdr(Upgrade) -i WebSocket"],
+#                          frontend_section)
 
     @mock.patch("haproxy.helper.frontend_helper.get_bind_string")
     def test_config_common_part_without_forwarded_headers_with_ssl(self, mock_get_bind_string):
@@ -234,86 +234,86 @@ class FrontendHelperTestCase(unittest.TestCase):
         self.assertEqual("4443 accept-proxy ssl crt /certs/", bind)
         self.assertTrue(ssl)
 
-    def test_config_default_front(self):
-        cfg, monitor_uri_configured = config_default_frontend("ssl crt /certs/")
-        self.assertEqual(OrderedDict([('frontend default_port_80',
-                                       ['bind :80',
-                                        'reqadd X-Forwarded-Proto:\\ http',
-                                        'maxconn 55555',
-                                        'default_backend default_service']),
-                                      ('frontend default_port_443',
-                                       ['bind :443 ssl crt /certs/',
-                                        'reqadd X-Forwarded-Proto:\\ https',
-                                        'maxconn 55555',
-                                        'default_backend default_service'])]), cfg)
-        self.assertFalse(monitor_uri_configured)
+#     def test_config_default_front(self):
+#         cfg, monitor_uri_configured = config_default_frontend("ssl crt /certs/")
+#         self.assertEqual(OrderedDict([('frontend default_port_80',
+#                                        ['bind :80',
+#                                         'reqadd X-Forwarded-Proto:\\ http',
+#                                         'maxconn 55555',
+#                                         'default_backend default_service']),
+#                                       ('frontend default_port_443',
+#                                        ['bind :443 ssl crt /certs/',
+#                                         'reqadd X-Forwarded-Proto:\\ https',
+#                                         'maxconn 55555',
+#                                         'default_backend default_service'])]), cfg)
+#         self.assertFalse(monitor_uri_configured)
 
-        cfg, monitor_uri_configured = config_default_frontend("")
-        self.assertEqual(OrderedDict([('frontend default_port_80',
-                                       ['bind :80',
-                                        'reqadd X-Forwarded-Proto:\\ http',
-                                        'maxconn 55555',
-                                        'default_backend default_service'])
-                                      ]), cfg)
-        self.assertFalse(monitor_uri_configured)
+#         cfg, monitor_uri_configured = config_default_frontend("")
+#         self.assertEqual(OrderedDict([('frontend default_port_80',
+#                                        ['bind :80',
+#                                         'reqadd X-Forwarded-Proto:\\ http',
+#                                         'maxconn 55555',
+#                                         'default_backend default_service'])
+#                                       ]), cfg)
+#         self.assertFalse(monitor_uri_configured)
 
-        frontend_helper.MONITOR_PORT = "80"
-        cfg, monitor_uri_configured = config_default_frontend("")
-        self.assertEqual(OrderedDict([('frontend default_port_80',
-                                       ['bind :80',
-                                        'reqadd X-Forwarded-Proto:\\ http',
-                                        'maxconn 55555',
-                                        'monitor-uri /ping',
-                                        'default_backend default_service'])]), cfg)
-        self.assertTrue(monitor_uri_configured)
+#         frontend_helper.MONITOR_PORT = "80"
+#         cfg, monitor_uri_configured = config_default_frontend("")
+#         self.assertEqual(OrderedDict([('frontend default_port_80',
+#                                        ['bind :80',
+#                                         'reqadd X-Forwarded-Proto:\\ http',
+#                                         'maxconn 55555',
+#                                         'monitor-uri /ping',
+#                                         'default_backend default_service'])]), cfg)
+#         self.assertTrue(monitor_uri_configured)
 
-        frontend_helper.MONITOR_PORT = "443"
-        frontend_helper.EXTRA_BIND_SETTINGS = {"443": "accept-proxy"}
-        cfg, monitor_uri_configured = config_default_frontend("ssl crt /certs/")
-        self.assertEqual(OrderedDict([('frontend default_port_80',
-                                       ['bind :80',
-                                        'reqadd X-Forwarded-Proto:\\ http',
-                                        'maxconn 55555',
-                                        'default_backend default_service']),
-                                      ('frontend default_port_443',
-                                       ['bind :443 ssl crt /certs/ accept-proxy',
-                                        'reqadd X-Forwarded-Proto:\\ https',
-                                        'maxconn 55555',
-                                        'monitor-uri /ping',
-                                        'default_backend default_service'])]), cfg)
-        self.assertTrue(monitor_uri_configured)
+#         frontend_helper.MONITOR_PORT = "443"
+#         frontend_helper.EXTRA_BIND_SETTINGS = {"443": "accept-proxy"}
+#         cfg, monitor_uri_configured = config_default_frontend("ssl crt /certs/")
+#         self.assertEqual(OrderedDict([('frontend default_port_80',
+#                                        ['bind :80',
+#                                         'reqadd X-Forwarded-Proto:\\ http',
+#                                         'maxconn 55555',
+#                                         'default_backend default_service']),
+#                                       ('frontend default_port_443',
+#                                        ['bind :443 ssl crt /certs/ accept-proxy',
+#                                         'reqadd X-Forwarded-Proto:\\ https',
+#                                         'maxconn 55555',
+#                                         'monitor-uri /ping',
+#                                         'default_backend default_service'])]), cfg)
+#         self.assertTrue(monitor_uri_configured)
 
-        frontend_helper.EXTRA_FRONTEND_SETTINGS = {'80': ["reqadd header1 value1"], '443': ["reqadd header2 value2"]}
-        cfg, monitor_uri_configured = config_default_frontend("ssl crt /certs/")
-        self.assertEqual(OrderedDict([('frontend default_port_80',
-                                       ['bind :80',
-                                        'reqadd X-Forwarded-Proto:\\ http',
-                                        'maxconn 55555',
-                                        'reqadd header1 value1',
-                                        'default_backend default_service']),
-                                      ('frontend default_port_443',
-                                       ['bind :443 ssl crt /certs/ accept-proxy',
-                                        'reqadd X-Forwarded-Proto:\\ https',
-                                        'maxconn 55555',
-                                        'monitor-uri /ping',
-                                        'reqadd header2 value2',
-                                        'default_backend default_service'])]), cfg)
-        self.assertTrue(monitor_uri_configured)
+#         frontend_helper.EXTRA_FRONTEND_SETTINGS = {'80': ["reqadd header1 value1"], '443': ["reqadd header2 value2"]}
+#         cfg, monitor_uri_configured = config_default_frontend("ssl crt /certs/")
+#         self.assertEqual(OrderedDict([('frontend default_port_80',
+#                                        ['bind :80',
+#                                         'reqadd X-Forwarded-Proto:\\ http',
+#                                         'maxconn 55555',
+#                                         'reqadd header1 value1',
+#                                         'default_backend default_service']),
+#                                       ('frontend default_port_443',
+#                                        ['bind :443 ssl crt /certs/ accept-proxy',
+#                                         'reqadd X-Forwarded-Proto:\\ https',
+#                                         'maxconn 55555',
+#                                         'monitor-uri /ping',
+#                                         'reqadd header2 value2',
+#                                         'default_backend default_service'])]), cfg)
+#         self.assertTrue(monitor_uri_configured)
 
-        frontend_helper.SKIP_FORWARDED_PROTO = 'true'
-        cfg, monitor_uri_configured = config_default_frontend("ssl crt /certs/")
-        self.assertEqual(OrderedDict([('frontend default_port_80',
-                                       ['bind :80',
-                                        'maxconn 55555',
-                                        'reqadd header1 value1',
-                                        'default_backend default_service']),
-                                      ('frontend default_port_443',
-                                       ['bind :443 ssl crt /certs/ accept-proxy',
-                                        'maxconn 55555',
-                                        'monitor-uri /ping',
-                                        'reqadd header2 value2',
-                                        'default_backend default_service'])]), cfg)
-        self.assertTrue(monitor_uri_configured)
+#         frontend_helper.SKIP_FORWARDED_PROTO = 'true'
+#         cfg, monitor_uri_configured = config_default_frontend("ssl crt /certs/")
+#         self.assertEqual(OrderedDict([('frontend default_port_80',
+#                                        ['bind :80',
+#                                         'maxconn 55555',
+#                                         'reqadd header1 value1',
+#                                         'default_backend default_service']),
+#                                       ('frontend default_port_443',
+#                                        ['bind :443 ssl crt /certs/ accept-proxy',
+#                                         'maxconn 55555',
+#                                         'monitor-uri /ping',
+#                                         'reqadd header2 value2',
+#                                         'default_backend default_service'])]), cfg)
+#         self.assertTrue(monitor_uri_configured)
 
     def test_config_common_part_with_monitor_uri(self):
         self.assertEqual(OrderedDict(), config_monitor_frontend(True))
